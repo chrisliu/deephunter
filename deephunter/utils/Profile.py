@@ -10,14 +10,14 @@ import pickle
 import pprint
 from PIL import Image
 
-from keras import Model
-from keras.datasets import mnist,cifar10
-from keras.models import load_model
+from tensorflow.keras import Model
+from tensorflow.keras.datasets import mnist,cifar10
+from tensorflow.keras.models import load_model
 import numpy as np
 import collections
 
 import os, sys, errno
-from keras import backend as K
+from tensorflow.keras import backend as K
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"

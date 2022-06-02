@@ -4,3 +4,5 @@ deephunter/try.py
 *.pyc
 test_seeds/dnntest*
 deephunter/*_out*
+deephunter/time.txt
+.venv

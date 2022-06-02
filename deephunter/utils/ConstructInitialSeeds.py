@@ -3,12 +3,12 @@ import argparse
 import os
 import sys
 import random
-from keras.datasets import mnist
-from keras.applications import MobileNet, VGG19, ResNet50
-from keras.models import load_model
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.applications import MobileNet, VGG19, ResNet50
+from tensorflow.keras.models import load_model
 import numpy as np
-from keras.datasets import cifar10
-from keras import Input
+from tensorflow.keras.datasets import cifar10
+from tensorflow.keras import Input
 from PIL import Image
 
 sys.path.append('../')
