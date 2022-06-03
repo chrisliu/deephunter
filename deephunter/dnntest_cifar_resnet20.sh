@@ -6,10 +6,10 @@ id can be any number.
 
 Before using the new scripts, please install the xxhash by "pip install xxhash"
 '
-#python image_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/uniform/nbc/0 -model resnet20 -criteria nbc -random 0 -select uniform -max_iteration 1000
-#python image_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/uniform/kmnc/0 -model resnet20 -criteria kmnc -random 0 -select uniform -max_iteration 1000
-#python image_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/prob/nbc/0 -model resnet20 -criteria nbc -random 0 -select prob -max_iteration 1000
-python image_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/prob/kmnc/0 -model resnet20 -criteria kmnc -random 0 -select prob -max_iteration 1000
+#python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/uniform/nbc/0 -model resnet20 -criteria nbc -random 0 -select uniform -max_iteration 1000
+#python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/uniform/kmnc/0 -model resnet20 -criteria kmnc -random 0 -select uniform -max_iteration 1000
+#python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/prob/nbc/0 -model resnet20 -criteria nbc -random 0 -select prob -max_iteration 1000
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_cifar  -o dnntest_resnet20_retrain3/prob/kmnc/0 -model resnet20 -criteria kmnc -random 0 -select prob -max_iteration 1000
 #python utils/CoveragePlot.py -i dnntest_resnet20_retrain2 -type coverage -iterations 1000 -o  results_cifar/dnntest_coverage_plot.pdf
 #python utils/CoveragePlot.py -i dnntest_resnet20_retrain2 -type seedattack -iterations 1000 -o  results_cifar/dnntest_diverse_plot.pdf
 #python utils/UniqCrashBar.py -i dnntest_resnet20_retrain2 -iterations 1000 -o  results_cifar/dnntest_uniq_crash.pdf

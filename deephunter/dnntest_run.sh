@@ -8,12 +8,12 @@ id can be any number.
 
 Before using the new scripts, please install the xxhash by "pip install xxhash"
 '
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/random/kmnc/0 -model lenet5 -random 0 -max_iteration 1000 -criteria kmnc
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/random/nbc/0 -model lenet5 -random 0 -max_iteration 1000 -criteria nbc
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/uniform/nbc/0 -model lenet5 -criteria nbc -random 0 -select uniform -max_iteration 1000
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/uniform/kmnc/0 -model lenet5 -criteria kmnc -random 0 -select uniform -max_iteration 1000
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/prob/nbc/0 -model lenet5 -criteria nbc -random 0 -select prob -max_iteration 1000
-python image_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/prob/kmnc/0 -model lenet5 -criteria kmnc -random 0 -select prob -max_iteration 1000
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/random/kmnc/0 -model lenet5 -random 0 -max_iteration 1000 -criteria kmnc
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/random/nbc/0 -model lenet5 -random 0 -max_iteration 1000 -criteria nbc
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/uniform/nbc/0 -model lenet5 -criteria nbc -random 0 -select uniform -max_iteration 1000
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/uniform/kmnc/0 -model lenet5 -criteria kmnc -random 0 -select uniform -max_iteration 1000
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/prob/nbc/0 -model lenet5 -criteria nbc -random 0 -select prob -max_iteration 1000
+python comprehensive_fuzzer.py  -i ../test_seeds/dnntest_mnist  -o dnntest_lenet5_out/prob/kmnc/0 -model lenet5 -criteria kmnc -random 0 -select prob -max_iteration 1000
 python utils/CoveragePlot.py -i dnntest_lenet5_out -type coverage -iterations 1000 -o  results_mnist/dnntest_coverage_plot.pdf
 python utils/CoveragePlot.py -i dnntest_lenet5_out -type seedattack -iterations 1000 -o  results_mnist/dnntest_diverse_plot.pdf
 python utils/UniqCrashBar.py -i dnntest_lenet5_out -iterations 1000 -o  results_mnist/dnntest_uniq_crash.pdf
