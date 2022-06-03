@@ -6,18 +6,18 @@ import sys
 import argparse, pickle
 import shutil
 
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 import os
 
 sys.path.append('../')
 
-import keras
-from keras import Input
+import tensorflow.keras as keras
+from tensorflow.keras import Input
 from deephunter.coverage import Coverage
 
-from keras.applications import MobileNet, VGG19, ResNet50
-from keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications import MobileNet, VGG19, ResNet50
+from tensorflow.keras.applications.vgg16 import preprocess_input
 
 import random
 import time
@@ -30,7 +30,7 @@ from lib.queue import Seed
 from lib.fuzzer import Fuzzer
 
 from deephunter.mutators import Mutators
-from keras.utils.generic_utils import CustomObjectScope
+from tensorflow.keras.utils import CustomObjectScope
 
 #_, (x_test, y_test) = keras.datasets.cifar10.load_data()
 #x_test=x_test/255.0
