@@ -172,6 +172,7 @@ class Mutators():
 
     classA = [7, 8]  # pixel value transformation
     classB = [0, 1, 2, 3, 4, 5, 6] # Affine transformation
+
     @staticmethod
     def mutate_one(ref_img, img, cl, l0_ref, linf_ref, try_num=50):
 

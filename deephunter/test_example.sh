@@ -7,7 +7,7 @@ id can be any number.
 Before using the new scripts, please install the xxhash by "pip install xxhash"
 '
 
-FUZZ_ITERS=100000
+FUZZ_ITERS=200
 
 #python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o lenet5_out/random/kmnc/0 -model lenet5 -random 1 -max_iteration $FUZZ_ITERS -criteria kmnc &
 #python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o lenet5_out/random/nbc/0 -model lenet5 -random 1 -max_iteration $FUZZ_ITERS -criteria nbc &

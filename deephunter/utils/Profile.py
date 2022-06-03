@@ -199,9 +199,7 @@ if __name__ == '__main__':
     profiling_dict_result ="{0}.pickle".format(args.o)
     print("profiling output file name {0}".format(profiling_dict_result))
 
-
     # get the training data for profiling
-
     if args.train == 'mnist':
         (x_train, train_label), (x_test, test_label) = mnist.load_data()
         x_train = mnist_preprocessing(x_train)

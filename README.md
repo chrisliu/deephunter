@@ -117,7 +117,7 @@ The user can follow the commands to add configurations with other testing criter
 
 ```
 cd deephunter_source/deephunter/
-python image_fuzzer.py
+python comprehensive_fuzzer.py
        -i ../test_seeds/mnist_seeds
        -o mnist_output
        -model lenet5
