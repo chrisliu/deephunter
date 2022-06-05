@@ -334,17 +334,16 @@ class Mutators():
     text_mutation_ids = [1, 2]
     # Fll in with method names of text transformations
     text_transformations = [rearrange_sentences, sub_synonym]
-    # TODO: fill in with params of text transformations, one entry per transformation method
+    # TODO: fill in with params of text transformations if necessary, one entry per transformation method
     text_params = []
-    text_params.append(list(xrange(-3, 3)))  # image_translation
-    text_params.append(list(map(lambda x: x * 0.1, list(xrange(7, 12)))))  # image_scale
+    text_params.append([])  # rearrange_sentences
+    text_params.append([])  # sub_synonym
 
 
-    # TODO: Adapt this function for text mutations
     @staticmethod
-    def text_mutate_one(ref_img, text, cl, l0_ref, linf_ref, try_num=50):
+    def text_mutate_one(ref_text, text, cl, l0_ref, linf_ref, try_num=50):
 
-        # ref_img is the reference text, text is the seed
+        # ref_text is the reference text, text is the seed
 
         # Note - This variable is from image mutations. Might use it for some kind of text transformation or might ignore it.
         # cl means the current state of transformation
@@ -356,10 +355,6 @@ class Mutators():
 
         # tyr_num is the maximum number of trials in Algorithm 2
 
-        # Probably just need length
-        # x, y, z = img.shape
-        length = text.shape
-
         # a, b is the alpha and beta in Equation 1 in the paper
         # a is the fraction of pixels we are allowing to change
         # b is the fraction of the color space that we allow a pixel value to change by
@@ -368,6 +363,7 @@ class Mutators():
 
         # l0: alpha * size(s), l_infinity: beta * 255 in Equation 1
         # l0 is the max number of changed pixels between an image and its mutant
+        # Note: Might use l0 as the number of words changed.
         # l0 = int(a * x * y * z)
         # l_infinity is the max value that a pixel can change by
         # l_infinity = int(b * 255)
@@ -377,52 +373,21 @@ class Mutators():
         # max number of words allowed to change between two strings
         # or any measure of how much a seed has been changed from the original
 
-        ori_shape = ref_img.shape
         for ii in range(try_num):
             random.seed(time.time())
-            if cl == 0:  # 0: can choose class A and B
-                # Pick a random mutation (the id of the mutation)
-                tid = random.sample(Mutators.text_mutation_ids, 1)[0]
-                # Randomly select one transformation   Line-7 in Algorithm2
-                # Then look up the mutation by id
-                transformation = Mutators.text_transformations[tid]
-                params = Mutators.text_params[tid]
-                # Randomly select one parameter Line 10 in Algo2
-                param = random.sample(params, 1)[0]
+            tid = random.sample(Mutators.text_mutation_ids, 1)[0]
+            transformation = Mutators.text_transformations[tid]
+            params = Mutators.text_params[tid]
+            param = random.sample(params, 1)[0]
+            text_new = transformation(text, param)
 
-                # Perform the transformation  Line 11 in Algo2
-                img_new = transformation(text, param)
-                img_new = img_new.reshape(ori_shape)
+            # Optional: compute new l0 and linf values and check if
+            # they're within range (less than previous values)
 
-                if tid in Mutators.classA:
-                    sub = ref_img - img_new
-                    # check whether it is a valid mutation. i.e., Equation 1 and Line 12 in Algo2
-                    l0_ref = np.sum(sub != 0)
-                    linf_ref = np.max(abs(sub))
-                    if l0_ref < l0 or linf_ref < l_infinity:
-                        return ref_img, img_new, 0, 1, l0_ref, linf_ref
-                else:  # B, C
-                    # If the current transformation is an Affine trans, we will update the reference image and
-                    # the transformation state of the seed.
-                    ref_img = transformation(copy.deepcopy(ref_img), param)
-                    ref_img = ref_img.reshape(ori_shape)
-                    return ref_img, img_new, 1, 1, l0_ref, linf_ref
-            if cl == 1: # 0: can choose class A
-                tid = random.sample(Mutators.classA, 1)[0]
-                transformation = Mutators.transformations[tid]
-                params = Mutators.params[tid]
-                param = random.sample(params, 1)[0]
-                img_new = transformation(copy.deepcopy(img), param)
-                sub = ref_img - img_new
+            return ref_text, text_new, 1, 1, l0_ref, linf_ref
 
-                # # To compute the value in Equation 2 in the paper.
-                # l0_new = l0_ref +  np.sum(sub != 0)
-                # linf_new = max(linf_ref , np.max(abs(sub)))
-
-                # if  l0_new < l0 or linf_new < l_infinity:
-                #     return ref_img, img_new, 1, 1, l0_ref, linf_ref
         # Otherwise the mutation is failed. Line 20 in Algo 2
-        return ref_img, img, cl, 0, l0_ref, linf_ref
+        return ref_text, text, cl, 0, l0_ref, linf_ref
 
     @staticmethod
     def text_random_mutate(seed, batch_num):
