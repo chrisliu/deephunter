@@ -392,8 +392,8 @@ class Mutators():
     text_transformations = [rearrange_sentences, sub_synonym, mutate_char]
 
     text_params = []
-    text_params.append([])  # rearrange_sentences
-    text_params.append([])  # sub_synonym
+    text_params.append([None])  # rearrange_sentences
+    text_params.append([None])  # sub_synonym
     params.append(list(range(0, 3)))  # mutate_char
 
 
@@ -436,6 +436,9 @@ class Mutators():
                 Mutators.text_mutation_ids + Mutators.text_char_mut_ids, 1)[0]
             transformation = Mutators.text_transformations[tid]
             params = Mutators.text_params[tid]
+            import tensorflow as tf
+            tf.logging.info(params)
+            tf.logging.info(text)
             param = random.sample(params, 1)[0]
             text_new = transformation(text, param)
 
