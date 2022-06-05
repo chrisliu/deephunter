@@ -78,7 +78,7 @@ class Coverage():
             layer_outputs = outputs[idx]
 
             for seed_id, layer_output in enumerate(layer_outputs):
-                for neuron_idx in xrange(layer_output.shape[-1]):
+                for neuron_idx in range(layer_output.shape[-1]):
 
                     profiling_data_list = self.profiling_dict[(layer_name, neuron_idx)]
 
@@ -124,7 +124,7 @@ class Coverage():
                 # print(layer_output.shape)
 
                 layer_output_dict = {}
-                for neuron_idx in xrange(layer_output.shape[-1]):
+                for neuron_idx in range(layer_output.shape[-1]):
                     output = np.mean(layer_output[..., neuron_idx])
 
                     layer_output_dict[neuron_idx] = output
@@ -148,7 +148,7 @@ class Coverage():
         for idx, layer_name in enumerate(self.layer_to_compute):
             layer_outputs = outputs[idx]
             for seed_id, layer_output in enumerate(layer_outputs):
-                for neuron_idx in xrange(layer_output.shape[-1]):
+                for neuron_idx in range(layer_output.shape[-1]):
 
                     output = np.mean(layer_output[..., neuron_idx])
 
@@ -204,7 +204,7 @@ class Coverage():
         for idx, layer_name in enumerate(self.layer_to_compute):
             layer_outputs = outputs[idx]
             for seed_id, layer_output in enumerate(layer_outputs):
-                for neuron_idx in xrange(layer_output.shape[-1]):
+                for neuron_idx in range(layer_output.shape[-1]):
                     output = np.mean(layer_output[..., neuron_idx])
 
                     profiling_data_list = self.profiling_dict[(layer_name, neuron_idx)]
@@ -253,7 +253,7 @@ class Coverage():
             layer_outputs = outputs[idx]
             for seed_id, layer_output in enumerate(layer_outputs):
                 scaled = self.scale(layer_output)
-                for neuron_idx in xrange(scaled.shape[-1]):
+                for neuron_idx in range(scaled.shape[-1]):
                     if np.mean(scaled[..., neuron_idx]) > self.k:
                         id = self.start + self.layer_start_index[idx] + neuron_idx * self.bytearray_len + 0
                         ptr[seed_id][id] = 1
