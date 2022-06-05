@@ -323,7 +323,7 @@ class Mutators():
             stoplist = set(stopwords.words('english'))
         except LookupError:
             # Need to download nltk stoplist once.
-            nltk_download('stoplist')
+            nltk_download('stopwords')
             stoplist = set(stopwords.words('english'))
 
         # This approach is guaranteed to replace a word if one can be
@@ -394,7 +394,7 @@ class Mutators():
     text_params = []
     text_params.append([None])  # rearrange_sentences
     text_params.append([None])  # sub_synonym
-    params.append(list(range(0, 3)))  # mutate_char
+    text_params.append(list(range(0, 3)))  # mutate_char
 
 
     @staticmethod
@@ -436,9 +436,6 @@ class Mutators():
                 Mutators.text_mutation_ids + Mutators.text_char_mut_ids, 1)[0]
             transformation = Mutators.text_transformations[tid]
             params = Mutators.text_params[tid]
-            import tensorflow as tf
-            tf.logging.info(params)
-            tf.logging.info(text)
             param = random.sample(params, 1)[0]
             text_new = transformation(text, param)
 
