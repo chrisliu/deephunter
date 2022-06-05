@@ -386,8 +386,8 @@ class Mutators():
         return mutation_funcs[params](text)
 
 
-    text_mutation_ids = [1, 2]
-    text_char_mut_ids = [3]
+    text_mutation_ids = [0, 1]
+    text_char_mut_ids = [2]
     # Fll in with method names of text transformations
     text_transformations = [rearrange_sentences, sub_synonym, mutate_char]
 
