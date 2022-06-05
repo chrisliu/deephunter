@@ -429,7 +429,7 @@ if __name__ == '__main__':
         dataset_dir = download_imdb()
         _, _, texts, labels = load_imdb(dataset_dir, only='test')
         p = np.random.permutation(len(texts))
-        size = 10
+        size = 20
         texts = [texts[i] for i in p][:size]
         labels = [labels[i] for i in p][:size]
 

@@ -7,23 +7,23 @@ id can be any number.
 Before using the new scripts, please install the xxhash by "pip install xxhash"
 '
 
-FUZZ_ITERS=10
+FUZZ_ITERS=50
+BATCH_SIZE=8
 
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/random/kmnc/0 -model bert -random 1 -max_iteration $FUZZ_ITERS -criteria kmnc &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/random/nbc/0 -model bert -random 1 -max_iteration $FUZZ_ITERS -criteria nbc &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/uniform/nbc/0 -model bert -criteria nbc -random 0 -select uniform -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/uniform/kmnc/0 -model bert -criteria kmnc -random 0 -select uniform -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/tensorfuzz/nbc/0 -model bert -criteria nbc -random 0 -select tensorfuzz -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/tensorfuzz/kmnc/0 -model bert -criteria kmnc -random 0 -select tensorfuzz -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/nbc/0 -model bert -criteria nbc -random 0 -select deeptest -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/kmnc/0 -model bert -criteria kmnc -random 0 -select deeptest -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/kmnc/0 -model bert -criteria kmnc -random 0 -select deeptest -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/nbc/0 -model bert -criteria nbc -random 0 -select deeptest -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/prob/nbc/0 -model bert -criteria nbc -random 0 -select prob -max_iteration $FUZZ_ITERS &
-python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/prob/kmnc/0 -model bert -criteria kmnc -random 0 -select prob -max_iteration $FUZZ_ITERS &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/random/kmnc/0 -model bert -random 1 -max_iteration $FUZZ_ITERS -criteria kmnc -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/random/nbc/0 -model bert -random 1 -max_iteration $FUZZ_ITERS -criteria nbc -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/uniform/nbc/0 -model bert -criteria nbc -random 0 -select uniform -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/uniform/kmnc/0 -model bert -criteria kmnc -random 0 -select uniform -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/tensorfuzz/nbc/0 -model bert -criteria nbc -random 0 -select tensorfuzz -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/tensorfuzz/kmnc/0 -model bert -criteria kmnc -random 0 -select tensorfuzz -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/nbc/0 -model bert -criteria nbc -random 0 -select deeptest -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/kmnc/0 -model bert -criteria kmnc -random 0 -select deeptest -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/kmnc/0 -model bert -criteria kmnc -random 0 -select deeptest -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/deeptest/nbc/0 -model bert -criteria nbc -random 0 -select deeptest -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/prob/nbc/0 -model bert -criteria nbc -random 0 -select prob -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
+python comprehensive_fuzzer.py  -i ../test_seeds/mnist_seeds  -o bert_out/prob/kmnc/0 -model bert -criteria kmnc -random 0 -select prob -max_iteration $FUZZ_ITERS -batch_num $BATCH_SIZE &
 wait
 python utils/CoveragePlot.py -i bert_out -type coverage -iterations $FUZZ_ITERS -o  results/coverage_plot.pdf
 python utils/CoveragePlot.py -i bert_out -type seedattack -iterations $FUZZ_ITERS -o  results/diverse_plot.pdf
 python utils/UniqCrashBar.py -i bert_out -iterations $FUZZ_ITERS -o  results/uniq_crash.pdf
 echo 'Finish! Please find the results in the results directory.'
-

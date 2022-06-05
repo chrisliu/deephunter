@@ -63,8 +63,8 @@ def get_data(base_path, strategy_for_criteria, prefix, axs, iter, type):
             # count = 5000 if count > 5000 else count
             if not (iter is None):
                 count = iter if count > iter else count
-            x_values = cur_results.keys()[:count]
-            y_values = cur_results.values()[:count]
+            x_values = list(cur_results.keys())[:count]
+            y_values = list(cur_results.values())[:count]
             pp = prio
             if prio == 'uniform':
                 prio = 'DH+UF'
