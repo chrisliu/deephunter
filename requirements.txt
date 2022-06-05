@@ -2,12 +2,12 @@ tensorflow==1.15.0
 keras
 numpy
 matplotlib
-h5py
+h5py=2.10.0
 pillow
 scikit-learn
 click
 future
-opencv-python==3.2.0.8
+opencv-python
 tinydb
 scipy
 pandas
