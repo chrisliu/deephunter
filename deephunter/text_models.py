@@ -1,8 +1,17 @@
 from __future__ import print_function
 
+import tensorflow as tf
 import tensorflow.keras as keras
 import io
 import numpy as np
+from keras_bert import (
+    get_pretrained,
+    get_checkpoint_paths,
+    load_trained_model_from_checkpoint,
+    load_vocabulary,
+    Tokenizer
+)
+import os
 
 class PretrainedList:
     '''Latest copies of pre-trained bert models (as of June 2, 2022)
@@ -32,14 +41,14 @@ class PretrainedList:
 
 text_dataset_dir = 'text'
 
-def downlaod_imdb():
+def download_imdb():
     url = 'https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz'
     dataset = tf.keras.utils.get_file('aclImdb_v1.tar.gz', url,
                                       untar=True, cache_subdir=text_dataset_dir)
     dataset_dir = os.path.join(os.path.dirname(dataset), 'aclImdb')
     return dataset_dir
 
-def load_imdb(dataset_dir):
+def load_imdb(dataset_dir, only=None):
     def load_data(data_dir):
         texts = list()
         labels = list()
@@ -54,31 +63,38 @@ def load_imdb(dataset_dir):
                     labels.append(label_val)
 
         return texts, labels
-
+    
     train_dir = os.path.join(dataset_dir, 'train')
     test_dir = os.path.join(dataset_dir, 'test')
 
-    train_texts, train_labels = load_data(train_dir)
-    test_texts, test_labels = load_data(test_dir)
+    train_texts, train_labels, test_texts, test_labels = [None] * 4
+    if only is None or only == 'train':
+        train_texts, train_labels = load_data(train_dir)
+    if only is None or only == 'test':
+        test_texts, test_labels = load_data(test_dir)
 
     return train_texts, train_labels, test_texts, test_labels
 
-def get_BERTClassifier(url):
+def get_BERTClassifier(url, tokenizer_only=False):
     model_path = get_pretrained(PretrainedList.base_uncased)
     paths = get_checkpoint_paths(model_path)
-    model = load_trained_model_from_checkpoint(paths.config, paths.checkpoint,
-                                               training=True)
 
-    inputs = model.inputs[:2]
-    dense = model.get_layer('NSP-Dense').output
-    outputs =  keras.layers.Dense(units=2, activation='softmax')(dense)
+    if not tokenizer_only:
+        model = load_trained_model_from_checkpoint(paths.config, paths.checkpoint,
+                                                   training=True)
 
-    model = keras.models.Model(inputs=inputs, outputs=outputs)
-    model.compile(
-        optimizer=keras.optimizers.Adam(lr=2e-5),
-        loss='sparse_categorical_crossentropy',
-        metrics=['sparse_categorical_accuracy']
-    )
+        inputs = model.inputs[:2]
+        dense = model.get_layer('NSP-Dense').output
+        outputs =  keras.layers.Dense(units=2, activation='softmax')(dense)
+
+        model = keras.models.Model(inputs=inputs, outputs=outputs)
+        model.compile(
+            optimizer=keras.optimizers.Adam(lr=2e-5),
+            loss='sparse_categorical_crossentropy',
+            metrics=['sparse_categorical_accuracy']
+        )
+    else:
+        model = None
 
     vocab_dict = load_vocabulary(paths.vocab)
     tokenizer = Tokenizer(vocab_dict)
@@ -140,7 +156,7 @@ if __name__ == '__main__':
     timer.end().print_elapsed()
 
     timer.start("Getting IMDB")
-    dataset_dir = downlaod_imdb()
+    dataset_dir = download_imdb()
     train_texts, train_labels, test_texts, test_labels = load_imdb(dataset_dir)
     timer.end().print_elapsed()
 

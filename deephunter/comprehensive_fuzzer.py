@@ -32,13 +32,60 @@ from lib.fuzzer import Fuzzer
 from deephunter.mutators import Mutators
 from tensorflow.keras.utils import CustomObjectScope
 
+from keras_bert import get_custom_objects
+import io
+from text_models import (
+    PretrainedList, download_imdb, 
+    load_imdb, get_BERTClassifier, preprocess_imdb
+)
+
 #_, (x_test, y_test) = keras.datasets.cifar10.load_data()
 #x_test=x_test/255.0
 #x_test=x_test.reshape(10000,32,32,3)
 #y_test=y_test.reshape(-1)
-#yy = np.zeros((10000, 10))
-#for i in range(10000):
-#    yy[i][y_test[i]] = 1
+
+def dry_run_text(texts, labels, fetch_function, coverage_function, queue):
+    for i, (text, label) in enumerate(zip(texts, labels)):
+        tf.logging.info(f'Attempting dry run iteration {i}')
+        coverage_batches, metadata_batches = fetch_function([None, [text], None, None, None])
+        
+        coverage_list = coverage_function(coverage_batches)
+        metadata_list = metadata_function(metadata_batches)
+
+        input = Seed(0, coverage_list[0], f'seed{i}', None, metadata_list[0], label)
+        queue.save_if_interesting(input, [text], False, True, f'seed{i}')
+
+def build_text_random_mutate_function(texts, batch_num):
+    def text_random_mutate(seed):
+        ref_text = texts[int(seed.root_seed.replace('seed', ''))]
+        text = ref_text
+        
+        cl = seed.clss
+        ref_batches = []
+        batches = []
+        cl_batches = []
+        l0_ref_batches = []
+        linf_ref_batches = []
+        for i in range(batch_num):
+            ref_out, text_out, cl_out, changed, l0_ref, linf_ref = Mutators.text_mutate_one(ref_text, text, cl, seed.l0_ref, seed.linf_ref)
+            if changed:
+                ref_batches.append(ref_out)
+                batches.append(text_out)
+                cl_batches.append(cl_out)
+                l0_ref_batches.append(l0_ref)
+                linf_ref_batches.append(linf_ref)
+
+        return np.asarray(ref_batches), np.asarray(batches), cl_batches, l0_ref_batches, linf_ref_batches
+
+    return text_random_mutate
+
+def build_bert_fetch(handler, preprocess):
+    def fetch_function(input_batches):
+        _, text_batches, _, _, _  = input_batches
+        preprocessed = preprocess(text_batches)
+        layer_outputs = handler.predict(preprocessed)
+        return layer_outputs, np.expand_dims(np.argmax(layer_outputs[-1], axis=1),axis=0)
+    return fetch_function
 
 def imagenet_preprocessing(input_img_data):
     #print("imgenet preprocessing")
@@ -76,19 +123,16 @@ def cifar_preprocessing(x_test):
         temp[:, :, :, i] = (temp[:, :, :, i] - mean[i]) / std[i]
     return temp
 
-# TODO: add preprocessing for text dataset
 
-
-# TODO: add text model here
 model_weight_path = {
     'vgg16': "./profile/cifar10/models/vgg16.h5",
     'resnet20': "./profile/cifar10/models/resnet.h5",
     'lenet1': "./profile/mnist/models/lenet1.h5",
     'lenet4': "./profile/mnist/models/lenet4.h5",
-    'lenet5': "./profile/mnist/models/lenet5.h5"
+    'lenet5': "./profile/mnist/models/lenet5.h5",
+    'bert' : '/home2/chrisliu/bert.h5'
 }
 
-# TODO: add text model here
 model_profile_path = {
     'vgg16': "./profile/cifar10/profiling/vgg16/0_50000.pickle",
     'resnet20': "./profile/cifar10/profiling/resnet20/0_50000.pickle",
@@ -97,10 +141,10 @@ model_profile_path = {
     'lenet5': "./profile/mnist/profiling/lenet5/0_60000.pickle",
     'mobilenet': "./profile/imagenet/profiling/mobilenet_merged.pickle",
     'vgg19': "./profile/imagenet/profiling/vgg19_merged.pickle",
-    'resnet50': "./profile/imagenet/profiling/resnet50_merged.pickle"
+    'resnet50': "./profile/imagenet/profiling/resnet50_merged.pickle",
+    'bert': '/home2/chrisliu/bert_40.pickle'
 }
 
-# TODO: add text model here
 preprocess_dic = {
     'vgg16': cifar_preprocessing,
     'resnet20': cifar_preprocessing,
@@ -112,7 +156,6 @@ preprocess_dic = {
     'resnet50': imgnt_preprocessing
 }
 
-# TODO: add text model here
 shape_dic = {
     'vgg16': (32, 32, 3),
     'resnet20': (32, 32, 3),
@@ -123,6 +166,7 @@ shape_dic = {
     'vgg19': (224, 224, 3),
     'resnet50': (256, 256, 3)
 }
+
 metrics_para = {
     'kmnc': 1000,
     'bknc': 10,
@@ -133,7 +177,7 @@ metrics_para = {
     'fann': 1.0,
     'snac': 10
 }
-# TODO: add text model here
+
 execlude_layer_dic = {
     'vgg16': ['input', 'flatten', 'activation', 'batch', 'dropout'],
     'resnet20': ['input', 'flatten', 'activation', 'batch', 'dropout'],
@@ -145,7 +189,8 @@ execlude_layer_dic = {
     'vgg19': ['input', 'flatten', 'padding', 'activation', 'batch', 'dropout', 'bn',
               'reshape', 'relu', 'pool', 'concat', 'softmax', 'fc'],
     'resnet50': ['input', 'flatten', 'padding', 'activation', 'batch', 'dropout', 'bn',
-                 'reshape', 'relu', 'pool', 'concat', 'add', 'res4', 'res5']
+                 'reshape', 'relu', 'pool', 'concat', 'add', 'res4', 'res5'],
+    'bert' : ['Input-Token', 'Input-Segment', 'Embedding-Token']
 }
 
 
@@ -251,6 +296,34 @@ def dry_run(indir, fetch_function, coverage_function, queue):
         # Put the seed in the queue and save the npy file in the queue dir
         queue.save_if_interesting(input, new_img, False, True, seed_name)
 
+import time
+class Timer:
+    def __init__(self):
+        self.__start = None
+        self.__end = None
+        self.__name = ""
+
+    def start(self, name=""):
+        if name == "":
+            print("Starting timer")
+        else:
+            print(name)
+
+        self.__start = time.time()
+        self.__name = name
+        return self
+
+    def end(self):
+        self.__end = time.time()
+        return self
+
+    def elapsed(self):
+        if self.__name == "":
+            return "Took {:0.2f} seconds".format(self.__end - self.__start)
+        else:
+            return "{} took {:0.2f} seconds".format(self.__name,
+                                                    self.__end - self.__start)
+        return self
 
 if __name__ == '__main__':
 
@@ -266,7 +339,8 @@ if __name__ == '__main__':
 
     # TODO: add text model here
     parser.add_argument('-model', help="target model to fuzz", choices=['vgg16', 'resnet20', 'mobilenet', 'vgg19',
-                                                                        'resnet50', 'lenet1', 'lenet4', 'lenet5'], default='lenet5')
+                                                                        'resnet50', 'lenet1', 'lenet4', 'lenet5',
+                                                                        'bert'], default='lenet5')
     parser.add_argument('-criteria', help="set the criteria to guide the fuzzing",
                         choices=['nc', 'kmnc', 'nbc', 'snac', 'bknc', 'tknc', 'fann'], default='kmnc')
     parser.add_argument('-batch_num', help="the number of mutants generated for each seed", type=int, default=20)
@@ -281,6 +355,9 @@ if __name__ == '__main__':
                         choices=['uniform', 'tensorfuzz', 'deeptest', 'prob'], default='prob')
 
     args = parser.parse_args()
+
+    timer = Timer()
+    timer.start('Setup')
 
     # TODO: figure out text size
     img_rows, img_cols = 256, 256
@@ -305,10 +382,28 @@ if __name__ == '__main__':
         model = VGG19(input_tensor=input_tensor, input_shape=input_shape)
     elif args.model == 'resnet50':
         model = ResNet50(input_tensor=input_tensor)
+    elif args.model == 'bert':
+        pass
+        model = load_model(model_weight_path[args.model], custom_objects=get_custom_objects())
     else:
         model = load_model(model_weight_path[args.model])
 
     # Get the preprocess function based on different dataset
+    if args.model == 'bert': # Dynamically instantiate for bert (need tokenizer)
+        _, tokenizer = get_BERTClassifier(PretrainedList.base_cased)
+
+        def build_bert_preprocessor(tokenizer):
+            def bert_preprocessor(text_batch):
+                SEQ_LEN = 512
+                tokenized = [tokenizer.encode(t, max_len=SEQ_LEN)[0] for t in text_batch]
+                tokenized = np.array(tokenized)
+                return [tokenized, np.zeros_like(tokenized)]
+            
+            return bert_preprocessor
+  
+        preprocess_dic['bert'] = build_bert_preprocessor(tokenizer)
+
+
     preprocess = preprocess_dic[args.model]
 
     # Load the profiling information which is needed by the metrics in DeepGauge
@@ -329,6 +424,15 @@ if __name__ == '__main__':
     # The log file which records the plot data after each iteration of the fuzzing
     plot_file = open(os.path.join(args.o, 'plot.log'), 'a+')
 
+    # Load dataset
+    if args.model == 'bert':
+        dataset_dir = download_imdb()
+        _, _, texts, labels = load_imdb(dataset_dir, only='test')
+        p = np.random.permutation(len(texts))
+        size = 10
+        texts = [texts[i] for i in p][:size]
+        labels = [labels[i] for i in p][:size]
+
     # If testing for quantization, we will load the quantized versions
     # fetch_function is to perform the prediction and obtain the outputs of each layers
     if args.quantize_test == 1:
@@ -345,19 +449,22 @@ if __name__ == '__main__':
         fetch_function = build_fetch_function(coverage_handler, preprocess, models)
         model_names.insert(0, args.model)
     else:
-        fetch_function = build_fetch_function(coverage_handler, preprocess)
+        if args.model == 'bert':
+            fetch_function = build_bert_fetch(coverage_handler, preprocess)
+        else:
+            fetch_function = build_fetch_function(coverage_handler, preprocess)
         model_names = [args.model]
 
     # Like AFL, dry_run will run all initial seeds and keep all initial seeds in the seed queue
-    dry_run_fetch = build_fetch_function(coverage_handler, preprocess)
 
+    dry_run_fetch = build_fetch_function(coverage_handler, preprocess)
 
     # The function to update coverage
     coverage_function = coverage_handler.update_coverage
     # The function to perform the mutation from one seed
     # TODO: replace with name of text model
-    if (args.model == 'ourtextmodel'):
-        mutation_function = text_mutation_function(args.batch_num)
+    if args.model == 'bert':
+        mutation_function = build_text_random_mutate_function(texts, args.batch_num)
     else:
         mutation_function = image_mutation_function(args.batch_num)
 
@@ -367,8 +474,13 @@ if __name__ == '__main__':
     else:
         queue = ImageInputCorpus(args.o, args.random, args.select, coverage_handler.total_size, args.criteria)
 
+    print(timer.end().elapsed())
+
     # Perform the dry_run process from the initial seeds
-    dry_run(args.i, dry_run_fetch, coverage_function, queue)
+    if args.model == 'bert':
+        dry_run_text(texts, labels, fetch_function, coverage_function, queue)
+    else:
+        dry_run(args.i, dry_run_fetch, coverage_function, queue)
 
     # For each seed, compute the coverage and check whether it is a "bug", i.e., adversarial example
     image_iterate_function = iterate_function(model_names)
