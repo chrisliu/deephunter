@@ -394,7 +394,7 @@ class Mutators():
     text_params = []
     text_params.append([])  # rearrange_sentences
     text_params.append([])  # sub_synonym
-    params.append(list(xrange(0, 3)))  # mutate_char
+    params.append(list(range(0, 3)))  # mutate_char
 
 
     @staticmethod
