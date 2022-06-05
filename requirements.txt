@@ -13,7 +13,7 @@ scipy
 pandas
 tqdm
 requests
-pyflann
+pyflann-py3
 xxhash
 keras-bert
 nltk==3.4.5
