@@ -8,7 +8,7 @@ import copy
 reload(sys)
 sys.setdefaultencoding('utf8')
 from nltk import download as nltk_download, word_tokenize
-from nltk.corpus import wordnet
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import PunktSentenceTokenizer
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
@@ -323,9 +323,38 @@ class Mutators():
             # Need to download nltk punkt once.
             nltk_download('punkt')
             words = word_tokenize(text)
-        # swap word with synonym
-        replace_word_index = random.randrange(0, len(words))
-        words[replace_word_index] = Mutators.get_rand_synonym(words[replace_word_index])
+        try:
+            stoplist = set(stopwords.words('english'))
+        except LookupError:
+            # Need to download nltk stoplist once.
+            nltk_download('stoplist')
+            stoplist = set(stopwords.words('english'))
+
+        # This approach is guaranteed to replace a word if one can be
+        # replaced, but it takes longer because we have to check if
+        # each word is replaceable.
+        def word_at_index_replaceable(index):
+            # A word is "replaceable" if it's not in the stoplist.
+            # This also filters out punctuation.
+            return (words[index] not in stoplist
+                    and (len(words[index]) > 1 or words[index].isalpha()))
+        replaceable_indices = [i for i in range(len(words)) if word_at_index_replaceable(i)]
+        if (len(replaceable_indices) == 0):
+            return text
+        replace_word_index = random.sample(replaceable_indices, 1)[0]
+
+        # This approach is faster but is not guaranteed to replace a word.
+        # replace_word_index = random.randrange(0, len(words))
+        # i = 0
+        # while (words[replace_word_index] in stoplist):
+        #     if (i == 10):
+        #         # Give up guessing indices
+        #         return text
+        #     replace_word_index = random.randrange(0, len(words))
+        #     i += 1
+
+        # Swap word with synonym.
+        words[replace_word_index] = Mutators.get_rand_synonym(words[replace_word_index]).replace('_', ' ')
         detokenizer = TreebankWordDetokenizer()
         return detokenizer.detokenize(words)
 
@@ -384,7 +413,8 @@ class Mutators():
             # Optional: compute new l0 and linf values and check if
             # they're within range (less than previous values)
 
-            return ref_text, text_new, 1, 1, l0_ref, linf_ref
+            if (text_new != text):
+                return ref_text, text_new, 1, 1, l0_ref, linf_ref
 
         # Otherwise the mutation is failed. Line 20 in Algo 2
         return ref_text, text, cl, 0, l0_ref, linf_ref
