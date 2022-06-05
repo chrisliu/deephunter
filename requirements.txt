@@ -2,7 +2,7 @@ tensorflow==1.15.0
 keras
 numpy
 matplotlib
-h5py=2.10.0
+h5py==2.10.0
 pillow
 scikit-learn
 click
