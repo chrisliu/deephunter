@@ -5,8 +5,6 @@ import numpy as np
 import random
 import time
 import copy
-reload(sys)
-sys.setdefaultencoding('utf8')
 from nltk import download as nltk_download, word_tokenize
 from nltk.corpus import wordnet
 from nltk.tokenize import PunktSentenceTokenizer
@@ -160,15 +158,15 @@ class Mutators():
     # these parameters need to be carefullly considered in the experiment
     # to consider the feedbacks
     params = []
-    params.append(list(xrange(-3, 3)))  # image_translation
-    params.append(list(map(lambda x: x * 0.1, list(xrange(7, 12)))))  # image_scale
-    params.append(list(map(lambda x: x * 0.1, list(xrange(-6, 6)))))  # image_shear
-    params.append(list(xrange(-50, 50)))  # image_rotation
-    params.append(list(map(lambda x: x * 0.1, list(xrange(5, 13)))))  # image_contrast
-    params.append(list(xrange(-20, 20)))  # image_brightness
-    params.append(list(xrange(1, 10)))  # image_blur
-    params.append(list(xrange(1, 10)))  # image_pixel_change
-    params.append(list(xrange(1, 4)))  # image_noise
+    params.append(list(range(-3, 3)))  # image_translation
+    params.append(list(map(lambda x: x * 0.1, list(range(7, 12)))))  # image_scale
+    params.append(list(map(lambda x: x * 0.1, list(range(-6, 6)))))  # image_shear
+    params.append(list(range(-50, 50)))  # image_rotation
+    params.append(list(map(lambda x: x * 0.1, list(range(5, 13)))))  # image_contrast
+    params.append(list(range(-20, 20)))  # image_brightness
+    params.append(list(range(1, 10)))  # image_blur
+    params.append(list(range(1, 10)))  # image_pixel_change
+    params.append(list(range(1, 4)))  # image_noise
 
     classA = [7, 8]  # pixel value transformation
     classB = [0, 1, 2, 3, 4, 5, 6] # Affine transformation

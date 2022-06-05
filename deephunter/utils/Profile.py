@@ -52,7 +52,7 @@ class DNNProfile():
 
 
         for layer_name in self.layer_to_compute:
-            for index in xrange(self.model.get_layer(layer_name).output_shape[-1]):
+            for index in range(self.model.get_layer(layer_name).output_shape[-1]):
                 # [mean_value_new, squared_mean_value, standard_deviation, lower_bound, upper_bound]
                 self.cov_dict[(layer_name, index)] = [0.0, 0.0, 0.0, None, None]
 
@@ -83,7 +83,7 @@ class DNNProfile():
                 if iter % 1000 == 0:
                     print("*layer {0}, current/total iteration: {1}/{2}".format(layer_idx, iter + 1, len(layer_outputs)))
 
-                for neuron_idx in xrange(layer_output.shape[-1]):
+                for neuron_idx in range(layer_output.shape[-1]):
                     neuron_output = np.mean(layer_output[..., neuron_idx])
 
 
