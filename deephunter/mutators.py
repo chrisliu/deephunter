@@ -6,7 +6,7 @@ import random
 import time
 import copy
 from nltk import download as nltk_download, word_tokenize
-from nltk.corpus import wordnet
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import PunktSentenceTokenizer
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 
@@ -310,8 +310,6 @@ class Mutators():
             return word
         return random.sample(synonym_list, 1)[0]
 
-    # Possible improvement: replace nouns with nouns and adjectives with adjectives and don't replace anything else.
-    # See https://www.nltk.org/howto/wordnet.html
     # Replace one word with a synonym provided by nltk.
     def sub_synonym(text, params):
         # break up text into words
@@ -321,21 +319,82 @@ class Mutators():
             # Need to download nltk punkt once.
             nltk_download('punkt')
             words = word_tokenize(text)
-        # swap word with synonym
-        replace_word_index = random.randrange(0, len(words))
-        words[replace_word_index] = Mutators.get_rand_synonym(words[replace_word_index])
+        try:
+            stoplist = set(stopwords.words('english'))
+        except LookupError:
+            # Need to download nltk stoplist once.
+            nltk_download('stoplist')
+            stoplist = set(stopwords.words('english'))
+
+        # This approach is guaranteed to replace a word if one can be
+        # replaced, but it takes longer because we have to check if
+        # each word is replaceable.
+        def word_at_index_replaceable(index):
+            # A word is "replaceable" if it's not in the stoplist.
+            # This also filters out punctuation.
+            return (words[index] not in stoplist
+                    and (len(words[index]) > 1 or words[index].isalpha()))
+        replaceable_indices = [i for i in range(len(words)) if word_at_index_replaceable(i)]
+        if (len(replaceable_indices) == 0):
+            return text
+        replace_word_index = random.sample(replaceable_indices, 1)[0]
+
+        # This approach is faster but is not guaranteed to replace a word.
+        # replace_word_index = random.randrange(0, len(words))
+        # i = 0
+        # while (words[replace_word_index] in stoplist):
+        #     if (i == 10):
+        #         # Give up guessing indices
+        #         return text
+        #     replace_word_index = random.randrange(0, len(words))
+        #     i += 1
+
+        # Swap word with synonym.
+        words[replace_word_index] = Mutators.get_rand_synonym(words[replace_word_index]).replace('_', ' ')
         detokenizer = TreebankWordDetokenizer()
         return detokenizer.detokenize(words)
 
-    # TODO: Add the ID of each text transformation (unrelated to image mutations)
-    # Can break this up into multiple groups like with image mutations if you need to distinguish bw two classes of mutations
+    # Character-level mutations: add, swap, delete.
+    @staticmethod
+    def get_rand_char():
+        return chr(97 + np.random.randint(0, 26))
+
+    @staticmethod
+    def add_rand_char(text):
+        rand_char = Mutators.get_rand_char()
+        # Include index past last char so we can add new char at end.
+        rand_loc = np.random.randint(0, len(text) + 1)
+        return text[:rand_loc] + rand_char + text[rand_loc:]
+
+    @staticmethod
+    def del_rand_char(text):
+        rand_loc = np.random.randint(0, len(text))
+        return text[:rand_loc] + text[rand_loc+1:]
+
+    @staticmethod
+    def sub_rand_char(text):
+        rand_char = Mutators.get_rand_char()
+        rand_loc = np.random.randint(0, len(text))
+        return text[:rand_loc] + rand_char + text[rand_loc+1:]
+
+    # Either add, delete, or substitute a random character.
+    def mutate_char(text, params):
+        mutation_funcs = [
+            Mutators.add_rand_char,
+            Mutators.del_rand_char,
+            Mutators.sub_rand_char]
+        return mutation_funcs[params](text)
+
+
     text_mutation_ids = [1, 2]
+    text_char_mut_ids = [3]
     # Fll in with method names of text transformations
-    text_transformations = [rearrange_sentences, sub_synonym]
-    # TODO: fill in with params of text transformations if necessary, one entry per transformation method
+    text_transformations = [rearrange_sentences, sub_synonym, mutate_char]
+
     text_params = []
     text_params.append([])  # rearrange_sentences
     text_params.append([])  # sub_synonym
+    params.append(list(xrange(0, 3)))  # mutate_char
 
 
     @staticmethod
@@ -373,7 +432,8 @@ class Mutators():
 
         for ii in range(try_num):
             random.seed(time.time())
-            tid = random.sample(Mutators.text_mutation_ids, 1)[0]
+            tid = random.sample(
+                Mutators.text_mutation_ids + Mutators.text_char_mut_ids, 1)[0]
             transformation = Mutators.text_transformations[tid]
             params = Mutators.text_params[tid]
             param = random.sample(params, 1)[0]
@@ -382,7 +442,8 @@ class Mutators():
             # Optional: compute new l0 and linf values and check if
             # they're within range (less than previous values)
 
-            return ref_text, text_new, 1, 1, l0_ref, linf_ref
+            if (text_new != text):
+                return ref_text, text_new, 1, 1, l0_ref, linf_ref
 
         # Otherwise the mutation is failed. Line 20 in Algo 2
         return ref_text, text, cl, 0, l0_ref, linf_ref
