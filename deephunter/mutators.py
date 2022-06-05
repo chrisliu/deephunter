@@ -306,7 +306,7 @@ class Mutators():
             nltk_download('wordnet')
             synsets = wordnet.synsets(word)
         synonym_list = map(lambda x: x.lemmas()[0].name().encode(), synsets)
-        synonym_list = filter(lambda w: w != word, synonym_list)
+        synonym_list = [w forw w in synonym_list if w != word]
         if (len(synonym_list) == 0):
             # There are no synonyms, so just return the original word.
             return word
