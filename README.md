@@ -162,3 +162,10 @@ Please cite the following paper if DeepHunter helps you on the research:
 	Title = {DeepHunter: A Coverage-Guided Fuzz Testing Framework for Deep Neural Networks},
 	Year = {2019}}
 ```
+
+## How to replicate testing the text mutation functions
+```
+cd text_mutation_testing/
+python2 mut_test.py
+```
+The output will go into mutation_test_single_mutation.out and mutation_test_10x_mutation.out.
